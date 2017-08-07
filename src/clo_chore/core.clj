@@ -19,16 +19,17 @@
   (let [halfbaked (map #(str/join "," %) fileVector)]
     (str/join "\n"
       (vector
-        (str "Chore:" (get halfbaked 0))
-        (str "Expiry:" (get halfbaked 1))))))
+        (str "Chore:" (first halfbaked))
+        (str "Expiry:" (second halfbaked))))))
 
 (defn addChore [chore date]
-  ())
+  (let [fileVector (splitFile file)]
+    (vector (conj (first fileVector) chore)
+            (second fileVector))))
 
 (defn -main
   [& args]
   (spit file "Chore:Name,name\nExpiry:Jeff,jeff")
-  (println (splitFile file))
-  (println (joinFile (splitFile file)))
+  (println (joinFile (addChore "newchore" "1/2/3")))
   (flush)
 )
