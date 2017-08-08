@@ -22,14 +22,34 @@
         (str "Chore:" (first halfbaked))
         (str "Expiry:" (second halfbaked))))))
 
-(defn addChore [chore date]
-  (let [fileVector (splitFile file)]
-    (vector (conj (first fileVector) chore)
-            (second fileVector))))
+(defn addChore [chore date fileVector]
+  (vector (conj (first fileVector) (str chore "|" date))
+          (second fileVector)))
+
+(defn addExpiry [expiry date fileVector]
+  (vector (first fileVector)
+          (conj (second fileVector) (str expiry "|" date))))
+
+(defn removeChoreOrExpiry [ctype cname fileVector]
+  (case (str/lower-case ctype)
+    "chore" (vector (remove #(= cname %) (first fileVector)) (second fileVector))
+    "expiry" (vector (first fileVector) (remove #(= cname %) (second fileVector)))))
 
 (defn -main
-  [& args]
-  (spit file "Chore:Name,name\nExpiry:Jeff,jeff")
-  (println (joinFile (addChore "newchore" "1/2/3")))
-  (flush)
+  ([mode ctype cname date]
+  (case (str/lower-case mode)
+    "add"
+      (case (str/lower-case ctype)
+        "chore"
+          (spit file (joinFile (addChore cname date (splitFile file))))
+        "expiry"
+          (spit file (joinFile (addExpiry cname date (splitFile file))))
+      )
+  ))
+
+  ([mode ctype cname]
+  (case (str/lower-case mode)
+    "remove"
+      (spit file (joinFile (removeChoreOrExpiry ctype cname (splitFile file))))
+  ))
 )
