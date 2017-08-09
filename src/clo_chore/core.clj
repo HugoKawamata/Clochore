@@ -2,6 +2,7 @@
   (:gen-class))
 
 (require '[clojure.string :as str])
+(require '[clj-time :as t])
 
 (def file "clochore_saved_chores.txt")
 
@@ -22,29 +23,37 @@
         (str "Chore:" (first halfbaked))
         (str "Expiry:" (second halfbaked))))))
 
-(defn addChore [chore date fileVector]
-  (vector (conj (first fileVector) (str chore "|" date))
-          (second fileVector)))
-
-(defn addExpiry [expiry date fileVector]
-  (vector (first fileVector)
-          (conj (second fileVector) (str expiry "|" date))))
+(defn addChoreOrExpiry [cname date fileVector]
+  (case (str/lower-case ctype)
+    "chore" (vector (conj (first fileVector) (str cname "|" date))
+              (second fileVector))
+    "expiry" (vector (first fileVector)
+               (conj (second fileVector) (str cname "|" date))))
 
 (defn removeChoreOrExpiry [ctype cname fileVector]
   (case (str/lower-case ctype)
     "chore" (vector (remove #(= cname %) (first fileVector)) (second fileVector))
     "expiry" (vector (first fileVector) (remove #(= cname %) (second fileVector)))))
 
+(defn validMode? [mode]
+  (or (= mode "add") (= mode "remove")))
+
+(defn validCType? [ctype]
+  (or (= mode "chore") (= mode "expiry")))
+
+(defn validCName? [cname]
+  (not (or (.contains cname ",") (.contains cname "|") (.contains cname "\n"))))
+
+(defn validDate? [date]
+
+  )
+
+
 (defn -main
   ([mode ctype cname date]
   (case (str/lower-case mode)
     "add"
-      (case (str/lower-case ctype)
-        "chore"
-          (spit file (joinFile (addChore cname date (splitFile file))))
-        "expiry"
-          (spit file (joinFile (addExpiry cname date (splitFile file))))
-      )
+      (spit file (joinFile (addChoreOrExpiry cname date (splitFile file))))
   ))
 
   ([mode ctype cname]
